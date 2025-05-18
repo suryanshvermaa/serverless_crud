@@ -1,0 +1,55 @@
+org: suryansh
+service: first
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+plugins:
+  - serverless-offline
+  - serverless-dynamodb-local
+
+custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    stages:
+      - dev
+
+resources:
+  Resources:
+    ItemsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ItemsTable-dev
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+functions:
+  hello:
+    handler: lambdas/hello/handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
+          
+  createItem:
+    handler: lambdas/createItem/handler.createItem
+    events:
+      - http:
+          path: items
+          method: post
+
+  listItems:
+    handler: lambdas/getItems/handler.getItems
+    events:
+      - http:
+          path: items
+          method: get
